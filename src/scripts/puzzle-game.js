@@ -120,8 +120,8 @@ function openMobileCamera(side) {
     }
 
     refs.statusText.textContent = side === 'front'
-        ? 'Abriendo camara frontal...'
-        : 'Abriendo camara trasera...';
+        ? 'Abriendo camara...'
+        : 'Abriendo camara...';
 
     targetInput.click();
 }
