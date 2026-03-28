@@ -4,9 +4,14 @@ const refs = {
     imageInput: document.getElementById('image-input'),
     imageFileName: document.getElementById('image-file-name'),
     startCamera: document.getElementById('start-camera'),
+    mobileCameraBack: document.getElementById('mobile-camera-back'),
+    mobileCameraFront: document.getElementById('mobile-camera-front'),
+    mobileCameraInputBack: document.getElementById('mobile-camera-input-back'),
+    mobileCameraInputFront: document.getElementById('mobile-camera-input-front'),
     capturePhoto: document.getElementById('capture-photo'),
     stopCamera: document.getElementById('stop-camera'),
     cameraPreview: document.getElementById('camera-preview'),
+    cameraPreviewWrap: document.getElementById('camera-preview-wrap'),
     gridSize: document.getElementById('grid-size'),
     gridSizeLabel: document.getElementById('grid-size-label'),
     shufflePieces: document.getElementById('shuffle-pieces'),
@@ -39,6 +44,7 @@ const state = {
     sourceLabel: '',
     pieces: [],
     stream: null,
+    isMobile: false,
 };
 
 const rand = (min, max) => Math.random() * (max - min) + min;
@@ -46,14 +52,58 @@ const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
 
 if (refs.playfield) {
     forceDarkMode();
+    initResponsiveCameraUI();
     bindEvents();
     renderHistory();
 }
 
+function initResponsiveCameraUI() {
+    const ua = navigator.userAgent || '';
+    const coarsePointer = window.matchMedia ? window.matchMedia('(pointer: coarse)').matches : false;
+    state.isMobile = /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || (coarsePointer && navigator.maxTouchPoints > 0);
+
+    if (!state.isMobile) {
+        return;
+    }
+
+    refs.statusText.textContent = 'En telefono, usa camara trasera o frontal para tomar foto.';
+
+    if (refs.startCamera) {
+        refs.startCamera.classList.add('hidden');
+    }
+    if (refs.capturePhoto) {
+        refs.capturePhoto.classList.add('hidden');
+    }
+    if (refs.stopCamera) {
+        refs.stopCamera.classList.add('hidden');
+    }
+    if (refs.cameraPreviewWrap) {
+        refs.cameraPreviewWrap.classList.add('hidden');
+    }
+    if (refs.mobileCameraBack) {
+        refs.mobileCameraBack.classList.remove('hidden');
+    }
+    if (refs.mobileCameraFront) {
+        refs.mobileCameraFront.classList.remove('hidden');
+    }
+}
+
 function bindEvents() {
     refs.imageInput.addEventListener('change', onFilePicked);
+    if (refs.mobileCameraInputBack) {
+        refs.mobileCameraInputBack.addEventListener('change', onMobileCameraPicked);
+    }
+    if (refs.mobileCameraInputFront) {
+        refs.mobileCameraInputFront.addEventListener('change', onMobileCameraPicked);
+    }
     refs.gridSize.addEventListener('input', onGridChanged);
     refs.startCamera.addEventListener('click', startCamera);
+    if (refs.mobileCameraBack) {
+        refs.mobileCameraBack.addEventListener('click', () => openMobileCamera('back'));
+    }
+    if (refs.mobileCameraFront) {
+        refs.mobileCameraFront.addEventListener('click', () => openMobileCamera('front'));
+    }
     refs.capturePhoto.addEventListener('click', captureFromCamera);
     refs.stopCamera.addEventListener('click', stopCamera);
     refs.shufflePieces.addEventListener('click', () => shufflePieces(true));
@@ -61,6 +111,27 @@ function bindEvents() {
     refs.historyList.addEventListener('click', onHistoryClick);
 
     window.addEventListener('beforeunload', stopCamera);
+}
+
+function openMobileCamera(side) {
+    const targetInput = side === 'front' ? refs.mobileCameraInputFront : refs.mobileCameraInputBack;
+    if (!targetInput) {
+        return;
+    }
+
+    refs.statusText.textContent = side === 'front'
+        ? 'Abriendo camara frontal...'
+        : 'Abriendo camara trasera...';
+
+    targetInput.click();
+}
+
+function onMobileCameraPicked(event) {
+    const file = event.target.files?.[0];
+    processPickedFile(file, 'Captura de camara');
+
+    // Permite volver a tomar la misma foto consecutiva en algunos navegadores moviles.
+    event.target.value = '';
 }
 
 function onGridChanged() {
@@ -72,6 +143,10 @@ function onGridChanged() {
 
 function onFilePicked(event) {
     const file = event.target.files?.[0];
+    processPickedFile(file, file?.name);
+}
+
+function processPickedFile(file, sourceLabel) {
     if (!file) {
         if (refs.imageFileName) {
             refs.imageFileName.textContent = 'Ningun archivo seleccionado';
@@ -86,13 +161,18 @@ function onFilePicked(event) {
     const reader = new FileReader();
     reader.onload = () => {
         if (typeof reader.result === 'string') {
-            buildPuzzleFromData(reader.result, file.name);
+            buildPuzzleFromData(reader.result, sourceLabel || file.name);
         }
     };
     reader.readAsDataURL(file);
 }
 
 async function startCamera() {
+    if (state.isMobile) {
+        openMobileCamera('back');
+        return;
+    }
+
     if (!navigator.mediaDevices?.getUserMedia) {
         refs.statusText.textContent = 'Tu navegador no soporta acceso a camara :c';
         return;
@@ -470,6 +550,12 @@ function resetToEmpty() {
     refs.moves.textContent = '0';
     refs.shufflePieces.disabled = true;
     refs.imageInput.value = '';
+    if (refs.mobileCameraInputBack) {
+        refs.mobileCameraInputBack.value = '';
+    }
+    if (refs.mobileCameraInputFront) {
+        refs.mobileCameraInputFront.value = '';
+    }
     if (refs.imageFileName) {
         refs.imageFileName.textContent = 'Ningun archivo seleccionado';
     }
