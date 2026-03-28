@@ -1,0 +1,109 @@
+@import 'tailwindcss';
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+:root {
+  --bg-start: #f9dc5c;
+  --bg-mid: #f4fffd;
+  --bg-end: #011936;
+  --card: rgba(255, 255, 255, 0.78);
+  --card-stroke: rgba(70, 83, 98, 0.14);
+  --text-main: #0f172a;
+  --text-soft: #475569;
+}
+
+:root.dark {
+  --bg-start: #011936;
+  --bg-mid: #223043;
+  --bg-end: #465362;
+  --card: rgba(8, 18, 33, 0.82);
+  --card-stroke: rgba(148, 163, 184, 0.25);
+  --text-main: #e2e8f0;
+  --text-soft: #a8b4c6;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+  margin: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+body {
+  font-family: 'Space Grotesk', 'Segoe UI', Tahoma, sans-serif;
+  color: var(--text-main);
+  background: radial-gradient(circle at 12% 18%, color-mix(in oklab, var(--bg-start) 70%, white), transparent 42%),
+    radial-gradient(circle at 86% 80%, color-mix(in oklab, var(--bg-end) 80%, black), transparent 36%),
+    linear-gradient(128deg, var(--bg-start) 0%, var(--bg-mid) 52%, var(--bg-end) 100%);
+  background-attachment: fixed;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.glass-card {
+  background: var(--card);
+  border: 1px solid var(--card-stroke);
+  box-shadow: 0 24px 60px rgba(1, 25, 54, 0.18);
+  backdrop-filter: blur(14px);
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(249, 220, 92, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 42px rgba(249, 220, 92, 0.28);
+  }
+}
+
+.puzzle-piece {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  transition: transform 120ms ease, filter 120ms ease, box-shadow 120ms ease;
+}
+
+.puzzle-piece:active {
+  cursor: grabbing;
+}
+
+.puzzle-piece.dragging {
+  filter: drop-shadow(0 15px 24px rgba(1, 25, 54, 0.42));
+}
+
+.puzzle-piece.locked {
+  animation: pulse-glow 480ms ease;
+  filter: drop-shadow(0 8px 14px rgba(249, 220, 92, 0.35));
+}
+
+.scrollbar-soft {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(148, 163, 184, 0.6) transparent;
+}
+
+.scrollbar-soft::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+.scrollbar-soft::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-soft::-webkit-scrollbar-thumb {
+  background: linear-gradient(180deg, rgba(148, 163, 184, 0.65), rgba(71, 85, 105, 0.7));
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.scrollbar-soft::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(180deg, rgba(249, 220, 92, 0.8), rgba(237, 37, 78, 0.8));
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
